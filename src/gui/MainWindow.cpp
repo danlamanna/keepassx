@@ -438,16 +438,20 @@ void MainWindow::databaseTabChanged(int tabIndex)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    bool accept = saveLastDatabases();
+    bool closingToTray = (isVisible() && isTrayIconEnabled() && m_trayIcon
+                          && m_trayIcon->isVisible()
+                          && config()->get("GUI/CloseToTray").toBool());
 
-    if (accept) {
-        saveWindowInformation();
-
-        event->accept();
-        QApplication::quit();
+    if (closingToTray) {
+      event->ignore();
+      QTimer::singleShot(0, this, SLOT(hide()));
+    } else if (saveLastDatabases()) {
+      saveWindowInformation();
+      event->accept();
+      QApplication::quit();
     }
     else {
-        event->ignore();
+      event->ignore();
     }
 }
 
